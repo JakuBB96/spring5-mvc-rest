@@ -4,9 +4,12 @@ import com.barancewicz.api.v1.mapper.CustomerMapper;
 import com.barancewicz.api.v1.model.CustomerDTO;
 import com.barancewicz.bootstrap.Bootstrap;
 import com.barancewicz.domain.Customer;
+import com.barancewicz.domain.Vendor;
 import com.barancewicz.repositories.CategoryRepository;
 import com.barancewicz.repositories.CustomerRepository;
 
+import com.barancewicz.repositories.VendorRepository;
+import lombok.AllArgsConstructor;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -31,6 +34,9 @@ public class CustomerServiceIT {
     CustomerRepository customerRepository;
 
     @Autowired
+    VendorRepository vendorRepository;
+
+    @Autowired
     CategoryRepository categoryRepository;
 
     CustomerService customerService;
@@ -41,7 +47,7 @@ public class CustomerServiceIT {
         System.out.println(customerRepository.findAll().size());
 
         //setup data for testing
-        Bootstrap bootstrap = new Bootstrap(categoryRepository, customerRepository);
+        Bootstrap bootstrap = new Bootstrap(categoryRepository, customerRepository, vendorRepository);
         bootstrap.run(); //load data
 
         customerService = new CustomerServiceImpl(CustomerMapper.INSTANCE, customerRepository);
