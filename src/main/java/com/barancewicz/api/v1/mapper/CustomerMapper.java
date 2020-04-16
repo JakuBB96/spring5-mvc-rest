@@ -1,17 +1,19 @@
 package com.barancewicz.api.v1.mapper;
 
 import com.barancewicz.api.v1.model.CategoryDTO;
+import com.barancewicz.api.v1.model.CustomerDTO;
 import com.barancewicz.domain.Category;
+import com.barancewicz.domain.Customer;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
-public interface CategoryMapper {
+public interface CustomerMapper {
 
-    CategoryMapper INSTANCE = Mappers.getMapper(CategoryMapper.class);
+    CustomerMapper INSTANCE = Mappers.getMapper(CustomerMapper.class);
 
     @Mapping(source = "id", target = "id")
-    CategoryDTO categoryToCategoryDTO(Category category);
+    CustomerDTO customerToCustomerDTO(Customer customer);
 
 }
