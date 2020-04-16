@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class CategoryControllerTest {
+class CategoryControllerTest extends AbstractRestControllerTest {
 
     public static final String NAME = "Jim";
 
