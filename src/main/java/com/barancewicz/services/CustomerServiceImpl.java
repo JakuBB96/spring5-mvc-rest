@@ -2,6 +2,7 @@ package com.barancewicz.services;
 
 import com.barancewicz.api.v1.mapper.CustomerMapper;
 import com.barancewicz.api.v1.model.CustomerDTO;
+import com.barancewicz.controllers.v1.CustomerController;
 import com.barancewicz.domain.Customer;
 import com.barancewicz.repositories.CustomerRepository;
 import org.springframework.stereotype.Service;
@@ -12,20 +13,22 @@ import java.util.stream.Collectors;
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
-    private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
-    public CustomerServiceImpl(CustomerRepository customerRepository, CustomerMapper customerMapper) {
-        this.customerRepository = customerRepository;
+    private final CustomerRepository customerRepository;
+
+    public CustomerServiceImpl(CustomerMapper customerMapper, CustomerRepository customerRepository) {
         this.customerMapper = customerMapper;
+        this.customerRepository = customerRepository;
     }
 
     @Override
     public List<CustomerDTO> getAllCustomers() {
-        return customerRepository.findAll()
+        return customerRepository
+                .findAll()
                 .stream()
                 .map(customer -> {
                     CustomerDTO customerDTO = customerMapper.customerToCustomerDTO(customer);
-                    customerDTO.setCustomer_url("/api/v1/customers/" + customer.getId());
+                    customerDTO.setCustomerUrl(getCustomerUrl(customer.getId()));
                     return customerDTO;
                 })
                 .collect(Collectors.toList());
@@ -33,46 +36,69 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDTO getCustomerById(Long id) {
-      return customerRepository.findById(id)
-              .map(customerMapper::customerToCustomerDTO)
-              .orElseThrow(RuntimeException::new); //todo
+
+        return customerRepository.findById(id)
+                .map(customerMapper::customerToCustomerDTO)
+                .map(customerDTO -> {
+                    //set API URL
+                    customerDTO.setCustomerUrl(getCustomerUrl(id));
+                    return customerDTO;
+                })
+                .orElseThrow(ResourceNotFoundException::new);
     }
 
     @Override
     public CustomerDTO createNewCustomer(CustomerDTO customerDTO) {
+
         return saveAndReturnDTO(customerMapper.customerDTOToCustomer(customerDTO));
+    }
+
+    private CustomerDTO saveAndReturnDTO(Customer customer) {
+        Customer savedCustomer = customerRepository.save(customer);
+
+        CustomerDTO returnDto = customerMapper.customerToCustomerDTO(savedCustomer);
+
+        returnDto.setCustomerUrl(getCustomerUrl(savedCustomer.getId()));
+
+        return returnDto;
     }
 
     @Override
     public CustomerDTO saveCustomerByDTO(Long id, CustomerDTO customerDTO) {
-      Customer customer = customerMapper.customerDTOToCustomer(customerDTO);
-      customer.setId(id);
+        Customer customer = customerMapper.customerDTOToCustomer(customerDTO);
+        customer.setId(id);
 
-      return saveAndReturnDTO(customer);
+        return saveAndReturnDTO(customer);
     }
 
     @Override
     public CustomerDTO patchCustomer(Long id, CustomerDTO customerDTO) {
         return customerRepository.findById(id).map(customer -> {
-            if (customerDTO.getFirstName() != null){
-                customer.setFirstName(customerDTO.getFirstName());
-            }
-            if (customerDTO.getLastName() != null){
-                customer.setLastName(customerDTO.getLastName());
+
+            if(customerDTO.getFirstname() != null){
+                customer.setFirstname(customerDTO.getFirstname());
             }
 
-           CustomerDTO returnDTO =  customerMapper.customerToCustomerDTO(customerRepository.save(customer));
-            returnDTO.setCustomer_url("/api/v1/customer/" + id);
-            return returnDTO;
-        }).orElseThrow(RuntimeException::new);
+            if(customerDTO.getLastname() != null){
+                customer.setLastname(customerDTO.getLastname());
+            }
+
+            CustomerDTO returnDto = customerMapper.customerToCustomerDTO(customerRepository.save(customer));
+
+            returnDto.setCustomerUrl(getCustomerUrl(id));
+
+            return returnDto;
+
+        }).orElseThrow(ResourceNotFoundException::new);
     }
 
-    private CustomerDTO saveAndReturnDTO(Customer customer) {
-        Customer savedCustomer = customerRepository.save(customer);
-        CustomerDTO returnDto = customerMapper.customerToCustomerDTO(savedCustomer);
-        returnDto.setCustomer_url("/api/v1/customer/" + savedCustomer.getId());
-        return returnDto;
+    private String getCustomerUrl(Long id) {
+        return CustomerController.BASE_URL + "/" + id;
     }
 
+    @Override
+    public void deleteCustomerById(Long id) {
+        customerRepository.deleteById(id);
+    }
 
 }

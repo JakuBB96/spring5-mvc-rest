@@ -1,15 +1,15 @@
 package com.barancewicz.services;
 
-
-
 import com.barancewicz.api.v1.mapper.CustomerMapper;
 import com.barancewicz.api.v1.model.CustomerDTO;
 import com.barancewicz.bootstrap.Bootstrap;
 import com.barancewicz.domain.Customer;
 import com.barancewicz.repositories.CategoryRepository;
 import com.barancewicz.repositories.CustomerRepository;
+
 import org.junit.Before;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -44,7 +44,7 @@ public class CustomerServiceIT {
         Bootstrap bootstrap = new Bootstrap(categoryRepository, customerRepository);
         bootstrap.run(); //load data
 
-        customerService = new CustomerServiceImpl(customerRepository, CustomerMapper.INSTANCE);
+        customerService = new CustomerServiceImpl(CustomerMapper.INSTANCE, customerRepository);
     }
 
     @Test
@@ -55,20 +55,20 @@ public class CustomerServiceIT {
         Customer originalCustomer = customerRepository.getOne(id);
         assertNotNull(originalCustomer);
         //save original first name
-        String originalFirstName = originalCustomer.getFirstName();
-        String originalLastName = originalCustomer.getLastName();
+        String originalFirstName = originalCustomer.getFirstname();
+        String originalLastName = originalCustomer.getLastname();
 
         CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setFirstName(updatedName);
+        customerDTO.setFirstname(updatedName);
 
         customerService.patchCustomer(id, customerDTO);
 
         Customer updatedCustomer = customerRepository.findById(id).get();
 
         assertNotNull(updatedCustomer);
-        assertEquals(updatedName, updatedCustomer.getFirstName());
-        assertThat(originalFirstName, not(equalTo(updatedCustomer.getFirstName())));
-        assertThat(originalLastName, equalTo(updatedCustomer.getLastName()));
+        assertEquals(updatedName, updatedCustomer.getFirstname());
+        assertThat(originalFirstName, not(equalTo(updatedCustomer.getFirstname())));
+        assertThat(originalLastName, equalTo(updatedCustomer.getLastname()));
     }
 
     @Test
@@ -80,20 +80,20 @@ public class CustomerServiceIT {
         assertNotNull(originalCustomer);
 
         //save original first/last name
-        String originalFirstName = originalCustomer.getFirstName();
-        String originalLastName = originalCustomer.getLastName();
+        String originalFirstName = originalCustomer.getFirstname();
+        String originalLastName = originalCustomer.getLastname();
 
         CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setLastName(updatedName);
+        customerDTO.setLastname(updatedName);
 
         customerService.patchCustomer(id, customerDTO);
 
         Customer updatedCustomer = customerRepository.findById(id).get();
 
         assertNotNull(updatedCustomer);
-        assertEquals(updatedName, updatedCustomer.getLastName());
-        assertThat(originalFirstName, equalTo(updatedCustomer.getFirstName()));
-        assertThat(originalLastName, not(equalTo(updatedCustomer.getLastName())));
+        assertEquals(updatedName, updatedCustomer.getLastname());
+        assertThat(originalFirstName, equalTo(updatedCustomer.getFirstname()));
+        assertThat(originalLastName, not(equalTo(updatedCustomer.getLastname())));
     }
 
     private Long getCustomerIdValue(){

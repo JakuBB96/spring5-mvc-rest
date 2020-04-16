@@ -6,88 +6,93 @@ import com.barancewicz.api.v1.model.CategoryDTO;
 import com.barancewicz.api.v1.model.CustomerDTO;
 import com.barancewicz.domain.Category;
 import com.barancewicz.domain.Customer;
-import com.barancewicz.repositories.CategoryRepository;
 import com.barancewicz.repositories.CustomerRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
-
-class CustomerServiceTest {
-    public static final String F_NAME = "Mike";
-    public static final String L_NAME = "Carlisnky";
-    public static final long ID = 1L;
-    CustomerService customerService;
+public class CustomerServiceTest {
 
     @Mock
     CustomerRepository customerRepository;
 
+    CustomerMapper customerMapper = CustomerMapper.INSTANCE;
 
-    @BeforeEach
-    void setUp() {
+    CustomerService customerService;
+
+    @Before
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        customerService = new CustomerServiceImpl(customerRepository, CustomerMapper.INSTANCE);
+
+        customerService = new CustomerServiceImpl(customerMapper, customerRepository);
     }
 
     @Test
-    void getAllCustomers() {
+    public void getAllCustomers() throws Exception {
+        //given
+        Customer customer1 = new Customer();
+        customer1.setId(1l);
+        customer1.setFirstname("Michale");
+        customer1.setLastname("Weston");
 
-        List<Customer> customerList = Arrays.asList(new Customer(), new Customer(), new Customer());
+        Customer customer2 = new Customer();
+        customer2.setId(2l);
+        customer2.setFirstname("Sam");
+        customer2.setLastname("Axe");
 
-        when(customerRepository.findAll()).thenReturn(customerList);
+        when(customerRepository.findAll()).thenReturn(Arrays.asList(customer1, customer2));
 
+        //when
         List<CustomerDTO> customerDTOS = customerService.getAllCustomers();
 
-        assertEquals(customerList.size(), customerDTOS.size());
-
-    }
-
-
-    @Test
-    void getCustomerById() {
-
-        Customer customer = new Customer();
-        customer.setId(ID);
-        customer.setFirstName(F_NAME);
-        customer.setLastName(L_NAME);
-
-        when(customerRepository.findById(anyLong())).thenReturn(Optional.of(customer));
-
-        CustomerDTO customerDTO = customerService.getCustomerById(ID);
-
-        assertEquals(ID, customer.getId());
-        assertEquals(F_NAME, customerDTO.getFirstName());
-        assertEquals(L_NAME, customerDTO.getLastName());
+        //then
+        assertEquals(2, customerDTOS.size());
 
     }
 
     @Test
-    void createNewCustomer() {
+    public void getCustomerById() throws Exception {
+        //given
+        Customer customer1 = new Customer();
+        customer1.setId(1l);
+        customer1.setFirstname("Michale");
+        customer1.setLastname("Weston");
 
+        when(customerRepository.findById(anyLong())).thenReturn(java.util.Optional.ofNullable(customer1));
+
+        //when
+        CustomerDTO customerDTO = customerService.getCustomerById(1L);
+
+        assertEquals("Michale", customerDTO.getFirstname());
+    }
+
+    @Test
+    public void createNewCustomer() throws Exception {
+
+        //given
         CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setFirstName(F_NAME);
+        customerDTO.setFirstname("Jim");
 
         Customer savedCustomer = new Customer();
-        savedCustomer.setFirstName(customerDTO.getFirstName());
-        savedCustomer.setLastName(customerDTO.getLastName());
-        savedCustomer.setId(1L);
+        savedCustomer.setFirstname(customerDTO.getFirstname());
+        savedCustomer.setLastname(customerDTO.getLastname());
+        savedCustomer.setId(1l);
 
         when(customerRepository.save(any(Customer.class))).thenReturn(savedCustomer);
 
+        //when
         CustomerDTO savedDto = customerService.createNewCustomer(customerDTO);
 
-        assertEquals(savedDto.getFirstName(), customerDTO.getFirstName());
-        assertEquals(savedDto.getLastName(), customerDTO.getLastName());
-        assertEquals("/api/v1/customer/1", savedDto.getCustomer_url());
-
+        //then
+        assertEquals(customerDTO.getFirstname(), savedDto.getFirstname());
+        assertEquals("/api/v1/customers/1", savedDto.getCustomerUrl());
     }
 
     @Test
@@ -95,11 +100,11 @@ class CustomerServiceTest {
 
         //given
         CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setFirstName("Jim");
+        customerDTO.setFirstname("Jim");
 
         Customer savedCustomer = new Customer();
-        savedCustomer.setFirstName(customerDTO.getFirstName());
-        savedCustomer.setLastName(customerDTO.getLastName());
+        savedCustomer.setFirstname(customerDTO.getFirstname());
+        savedCustomer.setLastname(customerDTO.getLastname());
         savedCustomer.setId(1l);
 
         when(customerRepository.save(any(Customer.class))).thenReturn(savedCustomer);
@@ -108,9 +113,18 @@ class CustomerServiceTest {
         CustomerDTO savedDto = customerService.saveCustomerByDTO(1L, customerDTO);
 
         //then
-        assertEquals(customerDTO.getFirstName(), savedDto.getFirstName());
-        assertEquals("/api/v1/customer/1", savedDto.getCustomer_url());
+        assertEquals(customerDTO.getFirstname(), savedDto.getFirstname());
+        assertEquals("/api/v1/customers/1", savedDto.getCustomerUrl());
+    }
+
+    @Test
+    public void deleteCustomerById() throws Exception {
+
+        Long id = 1L;
+
+        customerRepository.deleteById(id);
+
+        verify(customerRepository, times(1)).deleteById(anyLong());
     }
 
 }
-

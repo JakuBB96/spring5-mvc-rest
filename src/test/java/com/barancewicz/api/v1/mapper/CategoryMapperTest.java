@@ -2,9 +2,9 @@ package com.barancewicz.api.v1.mapper;
 
 import com.barancewicz.api.v1.model.CategoryDTO;
 import com.barancewicz.domain.Category;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-import static org.junit.jupiter.api.Assertions.*;
 
 class CategoryMapperTest {
 
